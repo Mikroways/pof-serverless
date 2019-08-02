@@ -1,0 +1,83 @@
+service:
+  name: hello-cognito-user-pool
+#app: your-app-name
+#tenant: your-tenant-name
+
+# Add the serverless-webpack plugin
+plugins:
+  - serverless-webpack
+provider:
+  name: aws
+  runtime: nodejs10.x
+
+functions:
+  private:
+    handler: handler.fnprivate
+    events:
+      - http:
+          method: get
+          path: private
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId:
+              Ref: ApiGatewayAuthorizer
+          cors:
+            origin: 'http://localhost'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+          # Ver doc: https://serverless.com/framework/docs/providers/aws/events/apigateway/#enabling-cors
+          # Ver además https://weekly.elfitz.com/2019/03/12/set-up-cors-serverless-api-gateway/
+  public:
+    handler: handler.fnpublic
+    events:
+      - http:
+          method: get
+          path: public
+          cors: true
+resources:
+  Resources:
+    # Crea un pool de usuarios en cognito llamado: hello-cognito-user-pool
+    CognitoUserPool:
+      Type: "AWS::Cognito::UserPool"
+      Properties:
+        MfaConfiguration: OFF
+        UserPoolName: ${self:service.name}
+        UsernameAttributes:
+          - email
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+            RequireLowercase: False
+            RequireNumbers: True
+            RequireSymbols: False
+            RequireUppercase: True
+    # Crea una aplicación cliente asociada al pool de cognito antes mencionado.
+    # Esta app se llamará: hello-cognito-user-pool-clientapp
+    CognitoUserPoolClient:
+      Type: "AWS::Cognito::UserPoolClient"
+      Properties:
+        ClientName: ${self:service.name}-clientapp
+        GenerateSecret: False
+        UserPoolId:
+          Ref: CognitoUserPool
+    # Crea el autorizador para el API gw de tipo COGNITO_USER_POOLS
+    # Más info en:https://docs.aws.amazon.com/es_es/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html
+    ApiGatewayAuthorizer:
+      DependsOn:
+        - ApiGatewayRestApi
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: cognito-authorizer
+        IdentitySource: method.request.header.Authorization
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        Type: COGNITO_USER_POOLS
+        ProviderARNs:
+          - Fn::GetAtt: [CognitoUserPool, Arn]
+        ## Esta última linea enlaza el authorizer con el Arn del Pool de usuarios creado anteriormente

@@ -1,0 +1,4 @@
+{
+  "serviceURL":"https://<API gw ID>.execute-api.us-east-1.amazonaws.com/dev/private",
+  "authenticationURL": "https://<Cognito User Pool domain>.auth.us-east-1.amazoncognito.com/login?response_type=token&client_id=4ff7jc674lr17dmva2pkme9a7n&redirect_uri=http://localhost"
+}
