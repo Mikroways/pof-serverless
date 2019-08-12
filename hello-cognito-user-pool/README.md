@@ -36,8 +36,7 @@ Lo importante de este archivo `serverless.yml` es evaluar lo siguiente:
   * La configuración de CORS que se ve en cada endpoint, es simplemente para el
     preflight que usan los navegadores. El código del handler debe incluso
 agergar algunso de los headers también.
-        * Leer el siguiente [blog que lo explica
-          bien](https://serverless.com/blog/cors-api-gateway-survival-guide/)
+    * Leer el siguiente [blog que lo explica bien](https://serverless.com/blog/cors-api-gateway-survival-guide/)
 * La función pública es muy similar al ejemplo anterior
 * Los recursos se configuran con variables que admite la interpolación del
   framework serverless, así como además CloudFormation 
